@@ -8,8 +8,9 @@ import { IERC2981, ERC2981 } from "openzeppelin-contracts/contracts/token/common
 import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable {
-    constructor(address _tresary, uint96 _feeNumerator) ERC721A("Auction Land", "LAND") {
-        _setDefaultRoyalty(_tresary, _feeNumerator);
+    constructor(address _tresary) ERC721A("Auction Land", "LAND") {
+        // Set default royalty to 5% (denominator out of  10000).
+        _setDefaultRoyalty(_tresary, 500);
     }
 
     function supportsInterface(bytes4 interfaceId)

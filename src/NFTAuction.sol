@@ -65,6 +65,15 @@ contract NFTAuction is INFTAuction, Ownable, ReentrancyGuard {
     uint256 public startPrice;
     uint256 public nextStartPrice;
 
+    struct PlotDetails {
+        uint256 round;
+        uint256 price;
+        address owner;
+        uint256 endTime;
+    }
+
+    mapping(bytes32 => PlotDetails) public plots;
+
     mapping(bytes32=>address) public tokenOwner;
     mapping(bytes32=>uint256) public highestPrice;
     mapping(bytes32=>uint256) public auctionEndTime;
@@ -185,6 +194,10 @@ contract NFTAuction is INFTAuction, Ownable, ReentrancyGuard {
         emit StartAuction(x, y, currentRound, msg.sender, startPrice, auctionEndTime[currentPlotHash]);
     }
 
+    function sendTokens(address to, uint256 amount) internal {
+        paymentToken.transfer(to, amount);
+    }
+
     /// @dev Bids on a plot at the given x, y coordinates with the specified amount. 
     ///      The sender of the transaction must send the bid amount as payment.
     ///      The bid must be at least 10 percent higher than the current highest price and 
@@ -192,33 +205,22 @@ contract NFTAuction is INFTAuction, Ownable, ReentrancyGuard {
     /// @param x The x coordinate of the plot.
     /// @param y The y coordinate of the plot.
     /// @param amount The amount of the bid.
-    function bidPlot(int256 x, int256 y, uint256 amount) external nonReentrant() {
-        while(expectedRound() > currentRound){
-            changeRound();
+    function bidPlot(int256 x, int256 y, uint256 amount) external nonReentrant {
+        bytes32 plotHash = keccak256(abi.encodePacked(x, y, currentRound));
+
+        PlotDetails storage plot = plots[plotHash];
+
+        require(amount > plot.price, "Bid not high enough");
+        require(plot.endTime == 0 || plot.endTime > block.timestamp, "Plot not for sale");
+        
+        if (plot.endTime == 0) {
+            plot.endTime = block.timestamp + BID_TIMEOUT;
         }
 
-        bytes32 plotHash = getHash(x, y, currentRound);
+        sendTokens(plot.owner, plot.price);
 
-        uint256 plotRound = getPlotRound(x, y);
-        if (plotRound == 0)
-            revert AlreadySold();
-
-        if (plotRound != currentRound)
-            revert AuctionFinished();
-
-        if (highestPrice[plotHash] * 11 / 10 > amount)
-            revert BidTooLow({minimumBid: highestPrice[plotHash] * 11 / 10});
-
-        if (timeLeft(x, y) < 0)
-            revert BidTooLate();
-
-        paymentToken.transferFrom(msg.sender, address(this), amount);
-        paymentToken.transfer(tokenOwner[plotHash], highestPrice[plotHash]);
-        auctionEndTime[plotHash] += BID_TIMEOUT;
-        tokenOwner[plotHash] = msg.sender;
-        highestPrice[plotHash] = amount;
-
-        emit NewBid(x, y, msg.sender, amount, auctionEndTime[plotHash]);
+        plot.price = amount;
+        plot.owner = msg.sender;
     }
 
     /// @dev Provides trading status for a plot at the given x, y coordinates. 

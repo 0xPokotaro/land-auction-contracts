@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { DefaultOperatorFilterer } from "operator-filter-registry/src/DefaultOperatorFilterer.sol";
+import { DefaultOperatorFilterer } from "operator-filter-registry/DefaultOperatorFilterer.sol";
 import { ERC721AQueryable } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import { IERC721A, ERC721A } from "erc721a/contracts/ERC721A.sol";
 import { IERC2981, ERC2981 } from "openzeppelin-contracts/contracts/token/common/ERC2981.sol";

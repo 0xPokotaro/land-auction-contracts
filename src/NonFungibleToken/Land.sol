@@ -5,12 +5,16 @@ import { DefaultOperatorFilterer } from "operator-filter-registry/DefaultOperato
 import { ERC721AQueryable } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import { IERC721A, ERC721A } from "erc721a/contracts/ERC721A.sol";
 import { IERC2981, ERC2981 } from "openzeppelin-contracts/contracts/token/common/ERC2981.sol";
+import { IERC6551Registry } from "reference/interfaces/IERC6551Registry.sol";
 import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable {
-    constructor(address _tresary) ERC721A("Auction Land", "LAND") {
-        // Set default royalty to 5% (denominator out of  10000).
-        _setDefaultRoyalty(_tresary, 500);
+    IERC6551Registry erc6551Registry;
+    address erc6551AccountImplementation;
+
+    constructor(address _receiver) ERC721A("Auction Land", "LAND") {
+        // Set default royalty to 3% (denominator out of  10000).
+        _setDefaultRoyalty(_receiver, 300);
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -28,6 +32,22 @@ contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable {
         return
             ERC721A.supportsInterface(interfaceId) ||
             ERC2981.supportsInterface(interfaceId);
+    }
+
+     /// @dev Sets the address of the ERC6551 registry
+    function setERC6551Registry(address registry)
+        public
+        onlyOwner
+    {
+        erc6551Registry = IERC6551Registry(registry);
+    }
+
+    /// @dev Sets the address of the ERC6551 account implementation
+    function setERC6551Implementation(address implementation)
+        public
+        onlyOwner
+    {
+        erc6551AccountImplementation = implementation;
     }
 
     function setDefaultRoyalty(address receiver, uint96 feeNumerator)

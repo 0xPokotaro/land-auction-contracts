@@ -12,5 +12,6 @@ forge install chiru-labs/ERC721A
 forge install transmissions11/solmate
 forge install thirdweb-dev/contracts
 forge install dmfxyz/murky
+forge install erc6551/reference
 forge install ProjectOpenSea/operator-filter-registry
 ```

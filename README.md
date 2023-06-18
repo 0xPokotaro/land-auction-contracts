@@ -15,3 +15,8 @@ forge install dmfxyz/murky
 forge install erc6551/reference
 forge install ProjectOpenSea/operator-filter-registry
 ```
+
+## Tips
+
+- PlotLandERC6551Register.sol
+- 

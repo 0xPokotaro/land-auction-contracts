@@ -4,13 +4,19 @@ pragma solidity ^0.8.18;
 import { DefaultOperatorFilterer } from "operator-filter-registry/DefaultOperatorFilterer.sol";
 import { ERC721AQueryable } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import { IERC721A, ERC721A } from "erc721a/contracts/ERC721A.sol";
-import { IERC2981, ERC2981 } from "openzeppelin-contracts/contracts/token/common/ERC2981.sol";
-import { IERC6551Registry } from "reference/interfaces/IERC6551Registry.sol";
-import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import { IERC2981, ERC2981 } from "openzeppelin-contracts/token/common/ERC2981.sol";
+import { Ownable } from "openzeppelin-contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "openzeppelin-contracts/security/ReentrancyGuard.sol";
 
-contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable {
-    IERC6551Registry erc6551Registry;
-    address erc6551AccountImplementation;
+error CallerIsAContract();
+error ExceedsMaxSupply();
+
+contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable, ReentrancyGuard {
+    uint256 public constant MAX_SUPPLY = 25;
+
+    string private _baseTokenURI;
+
+    event UpdateBaseURI(string baseURI);
 
     constructor(address _receiver) ERC721A("Auction Land", "LAND") {
         // Set default royalty to 3% (denominator out of  10000).
@@ -34,20 +40,10 @@ contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable {
             ERC2981.supportsInterface(interfaceId);
     }
 
-     /// @dev Sets the address of the ERC6551 registry
-    function setERC6551Registry(address registry)
-        public
-        onlyOwner
-    {
-        erc6551Registry = IERC6551Registry(registry);
-    }
+    function setBaseURI(string calldata baseURI) external onlyOwner {
+        _baseTokenURI = baseURI;
 
-    /// @dev Sets the address of the ERC6551 account implementation
-    function setERC6551Implementation(address implementation)
-        public
-        onlyOwner
-    {
-        erc6551AccountImplementation = implementation;
+        emit UpdateBaseURI(baseURI);
     }
 
     function setDefaultRoyalty(address receiver, uint96 feeNumerator)

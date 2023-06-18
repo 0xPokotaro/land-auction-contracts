@@ -1,3 +1,4 @@
 erc721a/=lib/ERC721A/
 operator-filter-registry/=lib/operator-filter-registry/src/
 reference/=lib/reference/src/
+openzeppelin-contracts/=lib/openzeppelin-contracts/contracts

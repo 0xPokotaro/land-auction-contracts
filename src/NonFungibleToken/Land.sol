@@ -46,6 +46,18 @@ contract Land is ERC721AQueryable, ERC2981, DefaultOperatorFilterer, Ownable, Re
         emit UpdateBaseURI(baseURI);
     }
 
+    function mint(uint256 quantity) external nonReentrant {
+        uint256 totalSupply = totalSupply();
+
+        if (totalSupply + quantity > MAX_SUPPLY) {
+            revert ExceedsMaxSupply();
+        }
+
+        for (uint256 i = 0; i < quantity; i++) {
+            _mint(msg.sender, totalSupply + i);
+        }
+    }
+
     function setDefaultRoyalty(address receiver, uint96 feeNumerator)
         external
         onlyOwner
